@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redbook Illustrator Theme Preview</title>
+    <style>
+        :root {
+            --font-family: 'Noto Sans SC', 'Source Han Sans CN', 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+            --cover-background: linear-gradient(180deg, #3450e4 0%, #d266da 100%);
+            --cover-inner-background: #f3f3f3;
+            --cover-title-gradient: linear-gradient(180deg, #2e67b1 0%, #4c4c4c 100%);
+            --cover-subtitle-color: #000000;
+            --cover-title-size: 130px;
+            --border-radius: 25px;
+            --inner-radius: 20px;
+            --card-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-surface: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --accent-color: #6366f1;
+            --text-primary: #1e293b;
+            --text-secondary: #334155;
+            --text-tertiary: #475569;
+            --text-muted: #64748b;
+            --text-on-accent: #ffffff;
+            --surface-muted: #f1f5f9;
+            --border-color: #e2e8f0;
+            --code-surface: #f1f5f9;
+            --pre-surface: #1e293b;
+            --pre-text: #e2e8f0;
+            --page-number-color: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font-family);
+            color: #0f172a;
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 30%),
+                radial-gradient(circle at top right, rgba(244, 114, 182, 0.12), transparent 26%),
+                linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            padding: 32px 24px;
+            border-right: 1px solid rgba(148, 163, 184, 0.28);
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(18px);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar h1 {
+            margin: 0 0 10px;
+            font-size: 28px;
+            line-height: 1.2;
+        }
+
+        .sidebar p {
+            margin: 0 0 18px;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .theme-select {
+            width: 100%;
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            font-size: 15px;
+            background: #fff;
+        }
+
+        .theme-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .theme-button {
+            display: grid;
+            gap: 8px;
+            width: 100%;
+            padding: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            text-align: left;
+            cursor: pointer;
+            transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+        }
+
+        .theme-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        .theme-button.active {
+            border-color: #0f172a;
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+        }
+
+        .theme-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .theme-name {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .theme-mode {
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            color: #475569;
+            background: #f1f5f9;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .swatches {
+            display: flex;
+            gap: 8px;
+        }
+
+        .swatch {
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+        }
+
+        .theme-note {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .content {
+            padding: 28px;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+            padding: 18px 20px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(18px);
+        }
+
+        .toolbar h2 {
+            margin: 0 0 6px;
+            font-size: 24px;
+            line-height: 1.2;
+        }
+
+        .toolbar p {
+            margin: 0;
+            color: #475569;
+        }
+
+        .toolbar-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chip {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            font-size: 13px;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .preview-card {
+            padding: 22px;
+            border-radius: 26px;
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: 0 16px 42px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(18px);
+        }
+
+        .preview-card h3 {
+            margin: 0 0 16px;
+            font-size: 18px;
+        }
+
+        .frame {
+            overflow: auto;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.06) 0%, rgba(15, 23, 42, 0.12) 100%);
+            padding: 18px;
+        }
+
+        .scale {
+            width: 1080px;
+            transform-origin: top left;
+            transform: scale(0.26);
+            margin-bottom: calc(1440px * -0.74);
+        }
+
+        .cover-container,
+        .card-container {
+            width: 1080px;
+            min-height: 1440px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cover-container {
+            height: 1440px;
+            background: var(--cover-background);
+        }
+
+        .cover-inner {
+            position: absolute;
+            left: 65px;
+            top: 65px;
+            width: 950px;
+            height: 1310px;
+            padding: 80px 85px;
+            border-radius: var(--border-radius);
+            display: flex;
+            flex-direction: column;
+            background: var(--cover-inner-background);
+        }
+
+        .cover-emoji {
+            font-size: 180px;
+            line-height: 1.2;
+            margin-bottom: 50px;
+        }
+
+        .cover-title {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            font-weight: 900;
+            font-size: var(--cover-title-size);
+            line-height: 1.35;
+            background: var(--cover-title-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            word-break: normal;
+            overflow-wrap: break-word;
+        }
+
+        .cover-subtitle {
+            margin-top: auto;
+            font-weight: 350;
+            font-size: 72px;
+            line-height: 1.4;
+            color: var(--cover-subtitle-color);
+        }
+
+        .card-container {
+            padding: 50px;
+            background: var(--card-background);
+        }
+
+        .card-inner {
+            min-height: calc(1440px - 100px);
+            padding: 60px;
+            border-radius: var(--inner-radius);
+            background: var(--card-surface);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-content {
+            color: var(--text-tertiary);
+            font-size: 42px;
+            line-height: 1.7;
+        }
+
+        .card-content h1 {
+            margin: 0 0 40px;
+            font-size: 72px;
+            line-height: 1.3;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .card-content h2 {
+            margin: 50px 0 25px;
+            font-size: 56px;
+            line-height: 1.4;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .card-content p {
+            margin: 0 0 35px;
+        }
+
+        .card-content strong {
+            color: var(--text-primary);
+        }
+
+        .card-content em {
+            font-style: italic;
+            color: var(--accent-color);
+        }
+
+        .card-content ul {
+            margin: 30px 0;
+            padding-left: 60px;
+        }
+
+        .card-content li {
+            margin-bottom: 20px;
+        }
+
+        .card-content blockquote {
+            margin: 35px 0;
+            padding: 25px 30px 25px 40px;
+            border-left: 8px solid var(--accent-color);
+            border-radius: 0 12px 12px 0;
+            background: var(--surface-muted);
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .card-content code {
+            padding: 6px 16px;
+            border-radius: 8px;
+            background: var(--code-surface);
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 38px;
+            color: var(--accent-color);
+        }
+
+        .card-content pre {
+            margin: 35px 0;
+            padding: 40px;
+            border-radius: 16px;
+            background: var(--pre-surface);
+            color: var(--pre-text);
+            white-space: pre-wrap;
+            font-size: 36px;
+            line-height: 1.5;
+        }
+
+        .card-content pre code {
+            padding: 0;
+            background: transparent;
+            color: inherit;
+        }
+
+        .tags-container {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .tag {
+            display: inline-block;
+            margin: 10px 15px 10px 0;
+            padding: 12px 28px;
+            border-radius: 30px;
+            background: var(--accent-color);
+            color: var(--text-on-accent);
+            font-size: 34px;
+            font-weight: 500;
+        }
+
+        .page-number {
+            position: absolute;
+            right: 80px;
+            bottom: 80px;
+            font-size: 36px;
+            font-weight: 500;
+            color: var(--page-number-color);
+        }
+
+        @media (max-width: 1200px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+            }
+
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <h1>Theme Preview</h1>
+            <p>直接打开这个文件即可预览 `redbook-illustrator` 的封面和正文样式，并切换主题查看整体效果。</p>
+            <select id="themeSelect" class="theme-select"></select>
+            <div id="themeGrid" class="theme-grid"></div>
+        </aside>
+        <main class="content">
+            <section class="toolbar">
+                <div>
+                    <h2 id="activeThemeName">紫韵</h2>
+                    <p id="activeThemeDesc">预览封面与正文卡片的完整排版表现。</p>
+                </div>
+                <div class="toolbar-meta">
+                    <div class="chip" id="activeMode">LIGHT</div>
+                    <div class="chip" id="activeAccent">Accent</div>
+                </div>
+            </section>
+
+            <section class="preview-grid">
+                <article class="preview-card">
+                    <h3>封面</h3>
+                    <div class="frame">
+                        <div class="scale">
+                            <div class="cover-container">
+                                <div class="cover-inner">
+                                    <div class="cover-emoji">🌟</div>
+                                    <div class="cover-title">8种小红书配图主题</div>
+                                    <div class="cover-subtitle">一页切换，快速挑样式</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="preview-card">
+                    <h3>正文卡片</h3>
+                    <div class="frame">
+                        <div class="scale">
+                            <div class="card-container">
+                                <div class="card-inner">
+                                    <div class="card-content">
+                                        <h1>主题样式观察点</h1>
+                                        <p>看这张卡时，重点关注 <strong>标题对比</strong>、<em>强调色</em>、背景层次和整体阅读节奏。</p>
+                                        <blockquote>不是单纯换背景，而是整套 token: 封面、正文、引用、代码块和标签一起变。</blockquote>
+                                        <h2>快速检查</h2>
+                                        <ul>
+                                            <li>大标题是否够抓眼</li>
+                                            <li>正文是否清晰耐读</li>
+                                            <li>主题是否适合你的内容气质</li>
+                                        </ul>
+                                        <pre><code>node scripts/render_xhs_v2.js demos/content.md --style midnight</code></pre>
+                                        <div class="tags-container">
+                                            <span class="tag">#主题预览</span>
+                                            <span class="tag">#小红书配图</span>
+                                            <span class="tag">#排版风格</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="page-number">1/7</div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const THEMES = {
+            purple: {
+                name: "紫韵",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #3450E4 0%, #D266DA 100%)",
+                card_bg: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                accent_color: "#6366f1"
+            },
+            xiaohongshu: {
+                name: "小红书红",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #FF2442 0%, #FF6B81 100%)",
+                card_bg: "linear-gradient(135deg, #FF2442 0%, #FF6B81 100%)",
+                accent_color: "#FF2442"
+            },
+            mint: {
+                name: "清新薄荷",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #43e97b 0%, #38f9d7 100%)",
+                card_bg: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+                accent_color: "#43e97b",
+                card_surface: "rgba(249, 255, 252, 0.96)",
+                title_gradient: "linear-gradient(180deg, #0f766e 0%, #134e4a 100%)",
+                text_primary: "#134e4a",
+                text_secondary: "#115e59",
+                text_tertiary: "#0f766e",
+                text_muted: "#4b5563",
+                surface_muted: "#dffcf2",
+                border_color: "#a7f3d0",
+                code_surface: "#dcfce7",
+                pre_surface: "#134e4a",
+                pre_text: "#ecfdf5",
+                page_number_color: "rgba(10, 60, 52, 0.45)"
+            },
+            sunset: {
+                name: "日落橙",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #fa709a 0%, #fee140 100%)",
+                card_bg: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+                accent_color: "#fa709a",
+                cover_inner_background: "#fff7ed",
+                title_gradient: "linear-gradient(180deg, #9a3412 0%, #7c2d12 100%)",
+                text_primary: "#7c2d12",
+                text_secondary: "#9a3412",
+                text_tertiary: "#c2410c",
+                text_muted: "#9a3412",
+                surface_muted: "#ffedd5",
+                border_color: "#fdba74",
+                code_surface: "#ffedd5",
+                pre_surface: "#7c2d12",
+                pre_text: "#fff7ed"
+            },
+            ocean: {
+                name: "深海蓝",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #4facfe 0%, #00f2fe 100%)",
+                card_bg: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                accent_color: "#4facfe",
+                cover_inner_background: "#f0f9ff",
+                title_gradient: "linear-gradient(180deg, #0f172a 0%, #0369a1 100%)",
+                text_primary: "#082f49",
+                text_secondary: "#0c4a6e",
+                text_tertiary: "#075985",
+                text_muted: "#155e75",
+                surface_muted: "#e0f2fe",
+                border_color: "#7dd3fc",
+                code_surface: "#e0f2fe",
+                pre_surface: "#082f49",
+                pre_text: "#e0f2fe"
+            },
+            elegant: {
+                name: "优雅白",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #f5f5f5 0%, #e0e0e0 100%)",
+                card_bg: "linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)",
+                accent_color: "#333333",
+                cover_inner_background: "#fafaf9",
+                title_gradient: "linear-gradient(180deg, #292524 0%, #57534e 100%)",
+                text_primary: "#292524",
+                text_secondary: "#44403c",
+                text_tertiary: "#57534e",
+                text_muted: "#78716c",
+                surface_muted: "#f5f5f4",
+                border_color: "#d6d3d1",
+                code_surface: "#f5f5f4",
+                pre_surface: "#1c1917",
+                pre_text: "#f5f5f4",
+                page_number_color: "rgba(41, 37, 36, 0.4)"
+            },
+            dark: {
+                name: "暗黑模式",
+                mode: "dark",
+                cover_bg: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)",
+                card_bg: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+                accent_color: "#e94560"
+            },
+            botanical: {
+                name: "植物园",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #6aa57b 0%, #d6ead7 100%)",
+                card_bg: "linear-gradient(135deg, #8bcf98 0%, #eef8ea 100%)",
+                accent_color: "#2f855a",
+                cover_inner_background: "#f8f5ec",
+                title_gradient: "linear-gradient(180deg, #1f4d3a 0%, #5a7f62 100%)",
+                subtitle_color: "#345c46",
+                card_surface: "rgba(250, 247, 238, 0.96)",
+                text_primary: "#1f3b2f",
+                text_secondary: "#365844",
+                text_tertiary: "#4d6b57",
+                text_muted: "#647766",
+                surface_muted: "#edf4ea",
+                border_color: "#cfe2cf",
+                code_surface: "#edf4ea",
+                pre_surface: "#213a2f",
+                pre_text: "#eaf5eb",
+                card_shadow: "0 14px 38px rgba(35, 63, 45, 0.14)",
+                page_number_color: "rgba(31, 59, 47, 0.4)"
+            },
+            retro: {
+                name: "复古海报",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #f3d6b3 0%, #dd8452 100%)",
+                card_bg: "linear-gradient(135deg, #f4d8b8 0%, #c96f44 100%)",
+                accent_color: "#a63d2f",
+                cover_inner_background: "#fff3df",
+                title_gradient: "linear-gradient(180deg, #7a2e22 0%, #c75b3d 100%)",
+                subtitle_color: "#7a2e22",
+                card_surface: "rgba(255, 244, 225, 0.95)",
+                text_primary: "#5c2418",
+                text_secondary: "#7a2e22",
+                text_tertiary: "#93412d",
+                text_muted: "#8a5b48",
+                surface_muted: "#f8e4c7",
+                border_color: "#d9a574",
+                code_surface: "#f6dfc2",
+                pre_surface: "#5c2418",
+                pre_text: "#fff2dd",
+                card_shadow: "0 10px 0 rgba(92, 36, 24, 0.22)",
+                page_number_color: "rgba(92, 36, 24, 0.45)"
+            },
+            brutalist: {
+                name: "新粗野",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #ffe600 0%, #ff8a00 100%)",
+                card_bg: "linear-gradient(135deg, #fff27a 0%, #ffb400 100%)",
+                accent_color: "#111111",
+                cover_inner_background: "#fffdf5",
+                title_gradient: "linear-gradient(180deg, #111111 0%, #2f2f2f 100%)",
+                subtitle_color: "#111111",
+                card_surface: "rgba(255, 255, 255, 0.98)",
+                text_primary: "#111111",
+                text_secondary: "#1f2937",
+                text_tertiary: "#111827",
+                text_muted: "#374151",
+                surface_muted: "#fff7b8",
+                border_color: "#111111",
+                code_surface: "#fff7b8",
+                pre_surface: "#111111",
+                pre_text: "#fef3c7",
+                card_shadow: "12px 12px 0 rgba(17, 17, 17, 0.95)",
+                radius: "8px",
+                page_number_color: "rgba(17, 17, 17, 0.55)"
+            },
+            sakura: {
+                name: "樱雾粉",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #ffd1dc 0%, #ffe7ef 100%)",
+                card_bg: "linear-gradient(135deg, #ffc7d7 0%, #fff1f5 100%)",
+                accent_color: "#e8799e",
+                cover_inner_background: "#fffafc",
+                title_gradient: "linear-gradient(180deg, #831843 0%, #be185d 100%)",
+                subtitle_color: "#9d174d",
+                card_surface: "rgba(255, 250, 252, 0.96)",
+                text_primary: "#831843",
+                text_secondary: "#9d174d",
+                text_tertiary: "#be185d",
+                text_muted: "#a35d76",
+                surface_muted: "#ffe4ec",
+                border_color: "#f9a8d4",
+                code_surface: "#ffe4ec",
+                pre_surface: "#831843",
+                pre_text: "#fff1f5",
+                card_shadow: "0 12px 34px rgba(190, 24, 93, 0.16)",
+                page_number_color: "rgba(131, 24, 67, 0.35)"
+            },
+            midnight: {
+                name: "午夜霓虹",
+                mode: "dark",
+                cover_bg: "linear-gradient(180deg, #09090b 0%, #1d1135 100%)",
+                card_bg: "linear-gradient(135deg, #09090b 0%, #231942 100%)",
+                accent_color: "#22d3ee",
+                cover_inner_background: "#111827",
+                title_gradient: "linear-gradient(180deg, #67e8f9 0%, #c4b5fd 100%)",
+                subtitle_color: "#e0f2fe",
+                card_surface: "rgba(17, 24, 39, 0.96)",
+                text_primary: "#f5f3ff",
+                text_secondary: "#dbeafe",
+                text_tertiary: "#c4b5fd",
+                text_muted: "#94a3b8",
+                surface_muted: "#1f2a44",
+                border_color: "#334155",
+                code_surface: "#1f2a44",
+                pre_surface: "#020617",
+                pre_text: "#cffafe",
+                card_shadow: "0 16px 42px rgba(34, 211, 238, 0.15)",
+                page_number_color: "rgba(186, 230, 253, 0.6)"
+            },
+            cocoa: {
+                name: "可可杂志",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #6f4e37 0%, #d8c3a5 100%)",
+                card_bg: "linear-gradient(135deg, #8d6e63 0%, #ede0d4 100%)",
+                accent_color: "#6b4226",
+                cover_inner_background: "#faf3e8",
+                title_gradient: "linear-gradient(180deg, #4e342e 0%, #8d6e63 100%)",
+                subtitle_color: "#5d4037",
+                card_surface: "rgba(250, 243, 232, 0.96)",
+                text_primary: "#4e342e",
+                text_secondary: "#5d4037",
+                text_tertiary: "#6d4c41",
+                text_muted: "#8d6e63",
+                surface_muted: "#efdfd1",
+                border_color: "#d7b899",
+                code_surface: "#efdfd1",
+                pre_surface: "#3e2723",
+                pre_text: "#fbe9e7",
+                card_shadow: "0 12px 34px rgba(78, 52, 46, 0.18)",
+                page_number_color: "rgba(78, 52, 46, 0.35)"
+            },
+            terminal: {
+                name: "终端绿",
+                mode: "dark",
+                cover_bg: "linear-gradient(180deg, #04130b 0%, #0b2a16 100%)",
+                card_bg: "linear-gradient(135deg, #03150d 0%, #0f2f1b 100%)",
+                accent_color: "#4ade80",
+                cover_inner_background: "#07150e",
+                title_gradient: "linear-gradient(180deg, #86efac 0%, #4ade80 100%)",
+                subtitle_color: "#d1fae5",
+                card_surface: "rgba(7, 21, 14, 0.96)",
+                text_primary: "#d1fae5",
+                text_secondary: "#bbf7d0",
+                text_tertiary: "#86efac",
+                text_muted: "#94a3b8",
+                surface_muted: "#10311d",
+                border_color: "#166534",
+                code_surface: "#10311d",
+                pre_surface: "#020617",
+                pre_text: "#bbf7d0",
+                card_shadow: "0 16px 42px rgba(74, 222, 128, 0.15)",
+                font_family: "'SF Mono', 'JetBrains Mono', 'Cascadia Code', 'Source Han Sans CN', monospace",
+                radius: "16px",
+                page_number_color: "rgba(187, 247, 208, 0.58)"
+            }
+        };
+
+        const order = [
+            "purple",
+            "xiaohongshu",
+            "mint",
+            "sunset",
+            "ocean",
+            "elegant",
+            "dark",
+            "botanical",
+            "retro",
+            "brutalist",
+            "sakura",
+            "midnight",
+            "cocoa",
+            "terminal"
+        ];
+
+        function coverTitleSize(title) {
+            const len = title.length;
+            if (len <= 6) return "150px";
+            if (len <= 10) return "130px";
+            if (len <= 18) return "100px";
+            if (len <= 30) return "80px";
+            return "60px";
+        }
+
+        function buildThemeVars(theme) {
+            const isDark = theme.mode === "dark";
+            return {
+                "--font-family": theme.font_family || "'Noto Sans SC', 'Source Han Sans CN', 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif",
+                "--cover-background": theme.cover_bg,
+                "--cover-inner-background": theme.cover_inner_background || (isDark ? "#1a1a2e" : "#F3F3F3"),
+                "--cover-title-gradient": theme.title_gradient || (isDark ? "linear-gradient(180deg, #ffffff 0%, #cccccc 100%)" : "linear-gradient(180deg, #2E67B1 0%, #4C4C4C 100%)"),
+                "--cover-subtitle-color": theme.subtitle_color || (isDark ? "#ffffff" : "#000000"),
+                "--cover-title-size": coverTitleSize("8种小红书配图主题"),
+                "--border-radius": theme.radius || "25px",
+                "--inner-radius": theme.inner_radius || "20px",
+                "--card-background": theme.card_bg,
+                "--card-surface": theme.card_surface || (isDark ? "rgba(30, 30, 46, 0.95)" : "rgba(255, 255, 255, 0.95)"),
+                "--card-shadow": theme.card_shadow || "0 8px 32px rgba(0, 0, 0, 0.1)",
+                "--accent-color": theme.accent_color,
+                "--text-primary": theme.text_primary || (isDark ? "#ffffff" : "#1e293b"),
+                "--text-secondary": theme.text_secondary || (isDark ? "#e0e0e0" : "#334155"),
+                "--text-tertiary": theme.text_tertiary || (isDark ? "#e0e0e0" : "#475569"),
+                "--text-muted": theme.text_muted || (isDark ? "#a0a0a0" : "#64748b"),
+                "--text-on-accent": theme.text_on_accent || "#ffffff",
+                "--surface-muted": theme.surface_muted || (isDark ? "#252540" : "#f1f5f9"),
+                "--border-color": theme.border_color || (isDark ? "#333355" : "#e2e8f0"),
+                "--code-surface": theme.code_surface || (isDark ? "#252540" : "#f1f5f9"),
+                "--pre-surface": theme.pre_surface || (isDark ? "#0f0f23" : "#1e293b"),
+                "--pre-text": theme.pre_text || (isDark ? "#e0e0e0" : "#e2e8f0"),
+                "--page-number-color": theme.page_number_color || (isDark ? "rgba(255, 255, 255, 0.72)" : "rgba(255, 255, 255, 0.8)")
+            };
+        }
+
+        function applyTheme(key) {
+            const theme = THEMES[key];
+            const vars = buildThemeVars(theme);
+            Object.entries(vars).forEach(([name, value]) => {
+                document.documentElement.style.setProperty(name, value);
+            });
+
+            document.getElementById("activeThemeName").textContent = theme.name;
+            document.getElementById("activeThemeDesc").textContent = `当前主题: ${key}。封面、正文、引用、代码块和标签均使用同一套视觉 token。`;
+            document.getElementById("activeMode").textContent = theme.mode.toUpperCase();
+
+            const accentChip = document.getElementById("activeAccent");
+            accentChip.textContent = `Accent ${theme.accent_color}`;
+            accentChip.style.borderColor = theme.accent_color;
+            accentChip.style.boxShadow = `inset 0 0 0 1px ${theme.accent_color}22`;
+
+            document.querySelectorAll(".theme-button").forEach((button) => {
+                button.classList.toggle("active", button.dataset.theme === key);
+            });
+            document.getElementById("themeSelect").value = key;
+        }
+
+        function buildThemeOption(key) {
+            const theme = THEMES[key];
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "theme-button";
+            button.dataset.theme = key;
+            button.innerHTML = `
+                <div class="theme-row">
+                    <div class="theme-name">${theme.name}</div>
+                    <div class="theme-mode">${theme.mode}</div>
+                </div>
+                <div class="swatches">
+                    <span class="swatch" style="background:${theme.accent_color}"></span>
+                    <span class="swatch" style="background:${theme.cover_bg}"></span>
+                    <span class="swatch" style="background:${theme.card_bg}"></span>
+                </div>
+                <div class="theme-note">${key}</div>
+            `;
+            button.addEventListener("click", () => applyTheme(key));
+            return button;
+        }
+
+        function init() {
+            const select = document.getElementById("themeSelect");
+            const grid = document.getElementById("themeGrid");
+
+            order.forEach((key) => {
+                const option = document.createElement("option");
+                option.value = key;
+                option.textContent = `${THEMES[key].name} (${key})`;
+                select.appendChild(option);
+                grid.appendChild(buildThemeOption(key));
+            });
+
+            select.addEventListener("change", (event) => applyTheme(event.target.value));
+            applyTheme("purple");
+        }
+
+        init();
+    </script>
+</body>
+</html>
