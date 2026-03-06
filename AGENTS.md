@@ -150,7 +150,6 @@ python scripts/prepare_publish_inputs.py --run-id <run_id> --candidate-id <candi
 
 ```
 redbook-operator/config/accounts.json      # 账号配置
-redbook-illustrator/.env                   # 环境变量
 redbook-auto-flow/workspace/               # 任务工作区
 redbook-auto-flow/data-sources/            # 共享数据源
 *.jpg, *.png                               # 临时图片
