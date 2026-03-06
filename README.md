@@ -105,7 +105,6 @@ npx playwright install chromium
 以下文件被 `.gitignore` 排除，需要你自己创建：
 
 - `redbook-operator/config/accounts.json` - 账号配置（从 `.example` 模板创建）
-- `redbook-illustrator/.env` - 环境变量（如有 API key 等敏感信息）
 - `redbook-auto-flow/workspace/` - 任务工作区
 - `redbook-auto-flow/data-sources/` - 共享数据源
 - `*.jpg`, `*.png` - 临时图片文件
