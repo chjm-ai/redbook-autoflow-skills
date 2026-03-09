@@ -38,7 +38,7 @@ def main():
     parser.add_argument(
         "--source-type",
         default="direct",
-        choices=["crawler", "notes", "search", "direct"],
+        choices=["crawler", "notes", "search", "direct", "ops"],
         help="Initial source type recorded in metadata.json",
     )
     args = parser.parse_args()
@@ -61,6 +61,9 @@ def main():
         "topic": args.topic,
         "status": "initialized",
         "dataset_id": None,
+        "ops_plan_id": None,
+        "selected_keyword": None,
+        "account": None,
         "selected_candidate_ids": [],
     }
     (run_dir / "metadata.json").write_text(

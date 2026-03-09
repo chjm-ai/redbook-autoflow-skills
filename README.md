@@ -6,6 +6,7 @@
 
 ```
 redbook-autoflow-skills/
+├── redbook-ops-planner/    # 每日运营规划层
 ├── redbook-auto-flow/      # 工作流协调器
 ├── redbook-writer/         # 文案生成
 ├── redbook-illustrator/    # 配图渲染
@@ -21,6 +22,7 @@ redbook-autoflow-skills/
 示例：如果你的宿主工具使用 `~/.claude/skills/` 作为 skill 根目录，可以这样软链接：
 
 ```bash
+ln -s "$(pwd)/redbook-ops-planner" ~/.claude/skills/redbook-ops-planner
 ln -s "$(pwd)/redbook-auto-flow" ~/.claude/skills/redbook-auto-flow
 ln -s "$(pwd)/redbook-writer" ~/.claude/skills/redbook-writer
 ln -s "$(pwd)/redbook-illustrator" ~/.claude/skills/redbook-illustrator
@@ -49,8 +51,14 @@ cp redbook-operator/config/accounts.json.example redbook-operator/config/account
 ### 3. 安装依赖
 
 ```bash
+# redbook-ops-planner (Python)
+cd redbook-ops-planner
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
 # redbook-operator (Python)
-cd redbook-operator
+cd ../redbook-operator
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -64,18 +72,26 @@ npx playwright install chromium
 ## 使用流程
 
 完整工作流：
-1. **redbook-operator** - 搜索小红书内容获取数据
-2. **redbook-auto-flow** - 协调工作流，管理数据
-3. **redbook-writer** - 基于数据生成选题和文案
-4. **redbook-illustrator** - 将文案渲染为配图
-5. **redbook-operator** - 发布到小红书
+1. **redbook-ops-planner** - 结合账号最新表现和外部垂类热点生成每日搜索词
+2. **redbook-operator** - 用搜索词搜索小红书内容获取数据
+3. **redbook-auto-flow** - 协调工作流，管理规划引用与数据引用
+4. **redbook-writer** - 基于规划和数据生成选题和文案
+5. **redbook-illustrator** - 将文案渲染为配图
+6. **redbook-operator** - 发布到小红书
 
 详见各 skill 目录下的 `SKILL.md` 文件。每个目录都可以独立安装，也可以按完整工作流一起安装。
 
 ## 各技能说明
 
+### redbook-ops-planner
+运营规划技能，支持：
+- 拉取账号最新内容数据
+- 拉取垂类外部热点
+- 生成当天 AI 搜索词与规划摘要
+- 将运营计划挂到 `redbook-auto-flow/workspace/{run_id}/inputs/ops_ref.json`
+
 ### redbook-auto-flow
-工作流协调器，统一编排整个内容创作流程。管理共享数据源和单次任务工作区。
+工作流协调器，统一编排整个内容创作流程。管理共享数据源、每日运营计划引用和单次任务工作区。
 
 ### redbook-writer
 文案生成技能，支持：
@@ -107,6 +123,7 @@ npx playwright install chromium
 - `redbook-operator/config/accounts.json` - 账号配置（从 `.example` 模板创建）
 - `redbook-auto-flow/workspace/` - 任务工作区
 - `redbook-auto-flow/data-sources/` - 共享数据源
+- `redbook-auto-flow/data-sources/ops/` - 每日运营规划数据
 - `*.jpg`, `*.png` - 临时图片文件
 
 ### 模板文件

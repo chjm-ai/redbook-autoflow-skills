@@ -52,6 +52,7 @@ package-lock.json
 
 # 敏感配置文件（保留模板，提交 example 版本）
 redbook-operator/config/accounts.json
+redbook-operator/1.json
 
 # 临时图片和媒体文件（用户自己的素材）
 *.jpg
