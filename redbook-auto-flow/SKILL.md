@@ -243,12 +243,21 @@ writer 在写作前应优先查看：
 
 - `candidates/{candidate_id}/publish/title.txt`
 - `candidates/{candidate_id}/publish/content.txt`
-- `candidates/{candidate_id}/assets/cover.png`
 - `candidates/{candidate_id}/assets/card_*.png`
+- 如存在，再附加 `candidates/{candidate_id}/assets/cover.png`
 
 输出：
 
 - `candidates/{candidate_id}/publish/publish_result.json`
+
+发布编排规则：
+
+- 发布时不要写死 profile 名称，统一由 `Redbook Operator` 的 `--account` 或其 `default_account` 决定
+- 真正发布前，先做一次目标账号的 `check-login`
+- 旧的 `publish_result.json` 只能说明历史运行写过结果，不能直接视为“这次已经发出”
+- 如果用户要求确认浏览器真实打开并完成填写，应优先让 `Redbook Operator` 走有窗口模式
+- 成功判断以当次运行日志和新写回的 `publish_result.json` 为准
+- 优先使用 `python3 ../redbook-operator/scripts/publish_pipeline.py --account {account_name} --candidate-dir workspace/{run_id}/candidates/{candidate_id}`，减少手工拼接图片路径
 
 如需只准备发布输入但不真正发布：
 
@@ -263,6 +272,7 @@ python3 scripts/prepare_publish_inputs.py \
 - 选题生成后，决定哪些题进入写作
 - 多篇文案生成后，决定哪些 `candidate_id` 进入配图
 - 配图完成后，决定哪些 `candidate_id` 进入发布
+- 发布前，确认最终使用的账号、标题、正文和图片
 
 ## 各技能分工
 
@@ -280,6 +290,9 @@ python3 scripts/prepare_publish_inputs.py \
 ### `Redbook Operator`
 
 - 负责搜索、读取和发布指定 `candidate_id` 的图文
+- 负责账号选择、登录检查和真实发布执行
+- 发布前应明确 `candidate_id` 和目标账号；发布时优先显式传 `--account`
+- 当用户质疑“浏览器没有真正打开”时，不能只依赖旧结果文件，要重新执行可见发布流程
 
 ## 约束
 

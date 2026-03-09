@@ -43,6 +43,7 @@ Exit codes:
 
 import argparse
 from datetime import datetime
+from pathlib import Path
 import json
 import os
 import random
@@ -91,6 +92,14 @@ def _write_result_file(result_file: str | None, payload: dict):
 def _normalize_timing_jitter(value: float) -> float:
     """Clamp timing jitter to a safe range."""
     return max(0.0, min(MAX_TIMING_JITTER_RATIO, value))
+
+
+def _natural_sort_key(text: str) -> list[object]:
+    """Sort strings in human order, e.g. card_2 before card_10."""
+    return [
+        int(part) if part.isdigit() else part.lower()
+        for part in re.split(r"(\d+)", text)
+    ]
 
 
 def _is_local_host(host: str) -> bool:
@@ -186,6 +195,65 @@ def _verify_local_files_exist(
         if not os.path.isfile(file_path):
             print(f"Error: {media_label} file not found: {file_path}", file=sys.stderr)
             sys.exit(2)
+
+
+def _resolve_candidate_bundle(candidate_dir: str) -> dict[str, object]:
+    """Load standard publish inputs from one candidate directory."""
+    candidate_path = Path(candidate_dir).expanduser().resolve()
+    publish_dir = candidate_path / "publish"
+    assets_dir = candidate_path / "assets"
+
+    title_file = publish_dir / "title.txt"
+    content_file = publish_dir / "content.txt"
+    result_file = publish_dir / "publish_result.json"
+
+    if not title_file.is_file():
+        print(f"Error: title file not found: {title_file}", file=sys.stderr)
+        sys.exit(2)
+    if not content_file.is_file():
+        print(f"Error: content file not found: {content_file}", file=sys.stderr)
+        sys.exit(2)
+    if not assets_dir.is_dir():
+        print(f"Error: assets directory not found: {assets_dir}", file=sys.stderr)
+        sys.exit(2)
+
+    card_candidates: list[Path] = []
+    for pattern in ("card_*", "cover.*"):
+        card_candidates.extend(assets_dir.glob(pattern))
+
+    image_paths = sorted(
+        [
+            str(path.resolve())
+            for path in card_candidates
+            if path.is_file() and path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}
+        ],
+        key=_natural_sort_key,
+    )
+
+    if not image_paths:
+        print(
+            f"Error: no publishable images found under {assets_dir} "
+            "(expected card_* or cover.*).",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+    return {
+        "candidate_dir": str(candidate_path),
+        "title_file": str(title_file),
+        "content_file": str(content_file),
+        "result_file": str(result_file),
+        "image_paths": image_paths,
+    }
+
+
+def _safe_current_url(publisher: XiaohongshuPublisher) -> str | None:
+    """Best-effort read of current page URL without failing the whole pipeline."""
+    try:
+        current_url = publisher._evaluate("window.location.href")
+    except Exception:
+        return None
+    return current_url if isinstance(current_url, str) and current_url else None
 
 
 def _select_topics(
@@ -322,18 +390,26 @@ def main():
         description="Xiaohongshu publish pipeline - unified entry point"
     )
 
+    parser.add_argument(
+        "--candidate-dir",
+        help=(
+            "redbook-auto-flow candidate directory. When provided, title/content/result "
+            "files are loaded from publish/, and images are auto-discovered from assets/."
+        ),
+    )
+
     # Title
-    title_group = parser.add_mutually_exclusive_group(required=True)
+    title_group = parser.add_mutually_exclusive_group(required=False)
     title_group.add_argument("--title", help="Article title text")
     title_group.add_argument("--title-file", help="Read title from UTF-8 file")
 
     # Content
-    content_group = parser.add_mutually_exclusive_group(required=True)
+    content_group = parser.add_mutually_exclusive_group(required=False)
     content_group.add_argument("--content", help="Article body text")
     content_group.add_argument("--content-file", help="Read content from UTF-8 file")
 
     # Media: images OR video (mutually exclusive)
-    media_group = parser.add_mutually_exclusive_group(required=True)
+    media_group = parser.add_mutually_exclusive_group(required=False)
     media_group.add_argument(
         "--image-urls", nargs="+", help="Image URLs to download"
     )
@@ -446,15 +522,42 @@ def main():
     reuse_existing_tab = args.reuse_existing_tab
     timing_jitter = _normalize_timing_jitter(args.timing_jitter)
     local_mode = _is_local_host(host)
+    candidate_bundle: dict[str, object] | None = None
+
+    if args.candidate_dir:
+        candidate_bundle = _resolve_candidate_bundle(args.candidate_dir)
+        if not args.title and not args.title_file:
+            args.title_file = str(candidate_bundle["title_file"])
+        if not args.content and not args.content_file:
+            args.content_file = str(candidate_bundle["content_file"])
+        if not any((args.image_urls, args.images, args.video, args.video_url)):
+            args.images = list(candidate_bundle["image_paths"])
+        if not args.result_file:
+            args.result_file = str(candidate_bundle["result_file"])
+
     result_context = {
         "status": "started",
         "preview": bool(args.preview),
         "published": False,
         "note_link": None,
         "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "candidate_dir": str(candidate_bundle["candidate_dir"]) if candidate_bundle else None,
+        "account": cache_account_name,
+        "host": host,
+        "port": port,
+        "headless": bool(headless),
         "title_file": args.title_file,
         "content_file": args.content_file,
         "result_file": args.result_file,
+        "title": None,
+        "content_length": 0,
+        "topic_tags": [],
+        "images_count": 0,
+        "video_path": None,
+        "url_after_login_check": None,
+        "url_after_fill": None,
+        "url_after_publish": None,
+        "message": None,
     }
 
     if timing_jitter != args.timing_jitter:
@@ -462,6 +565,20 @@ def main():
             "[pipeline] Warning: --timing-jitter out of range. "
             f"Clamped to {timing_jitter:.2f}."
         )
+
+    if not (args.title or args.title_file):
+        print("Error: --title, --title-file, or --candidate-dir is required.", file=sys.stderr)
+        sys.exit(2)
+    if not (args.content or args.content_file):
+        print("Error: --content, --content-file, or --candidate-dir is required.", file=sys.stderr)
+        sys.exit(2)
+    if not any((args.image_urls, args.images, args.video, args.video_url)):
+        print(
+            "Error: one of --image-urls/--images/--video/--video-url is required "
+            "(or provide --candidate-dir).",
+            file=sys.stderr,
+        )
+        sys.exit(2)
 
     # --- Resolve title ---
     if args.title_file:
@@ -473,6 +590,7 @@ def main():
     if not title:
         print("Error: title is empty.", file=sys.stderr)
         sys.exit(2)
+    result_context["title"] = title
 
     # --- Resolve content ---
     if args.content_file:
@@ -486,6 +604,8 @@ def main():
         sys.exit(2)
 
     content, topic_tags = _extract_topic_tags_from_last_line(content)
+    result_context["content_length"] = len(content)
+    result_context["topic_tags"] = topic_tags
     if topic_tags:
         print(
             "[pipeline] Detected topic tags from last line: "
@@ -523,6 +643,7 @@ def main():
     try:
         publisher.connect(reuse_existing_tab=reuse_existing_tab)
         logged_in = publisher.check_login()
+        result_context["url_after_login_check"] = _safe_current_url(publisher)
         if not logged_in:
             publisher.disconnect()
             if headless:
@@ -577,6 +698,7 @@ def main():
                 skip_file_check=args.skip_file_check,
             )
             print(f"[pipeline] Step 3: Using local video: {video_path}")
+            result_context["video_path"] = video_path
     elif args.image_urls:
         print(f"[pipeline] Step 3: Downloading {len(args.image_urls)} image(s)...")
         downloader = ImageDownloader(temp_dir=args.temp_dir)
@@ -584,6 +706,7 @@ def main():
         if not image_paths:
             print("Error: All image downloads failed.", file=sys.stderr)
             sys.exit(2)
+        result_context["images_count"] = len(image_paths)
     else:
         image_paths = args.images
         _verify_local_files_exist(
@@ -592,6 +715,7 @@ def main():
             skip_file_check=args.skip_file_check,
         )
         print(f"[pipeline] Step 3: Using {len(image_paths)} local image(s).")
+        result_context["images_count"] = len(image_paths)
 
     # --- Step 4: Fill form ---
     print("[pipeline] Step 4: Filling form...")
@@ -605,6 +729,7 @@ def main():
                 title=title, content=content, image_paths=image_paths
             )
         _select_topics(publisher, topic_tags, timing_jitter=timing_jitter)
+        result_context["url_after_fill"] = _safe_current_url(publisher)
         print("FILL_STATUS: READY_TO_PUBLISH")
     except CDPError as e:
         _write_result_file(
@@ -632,6 +757,13 @@ def main():
         try:
             note_link = publisher._click_publish()
             result_context["note_link"] = note_link
+            result_context["url_after_publish"] = _safe_current_url(publisher)
+            if note_link:
+                result_context["message"] = "发布成功，已获取笔记链接"
+            elif result_context["url_after_publish"] and "published=true" in result_context["url_after_publish"]:
+                result_context["message"] = "发布按钮已点击，URL 显示 published=true，发布成功"
+            else:
+                result_context["message"] = "发布按钮已点击，请人工确认最终落地页"
             print("PUBLISH_STATUS: PUBLISHED")
             if note_link:
                 print(f"[pipeline] Note published at: {note_link}")
@@ -661,6 +793,10 @@ def main():
             "status": "published" if should_publish else "ready_to_publish",
             "published": bool(should_publish),
             "note_link": result_context["note_link"],
+            "message": (
+                result_context["message"]
+                or ("内容已填充，等待人工点击发布" if not should_publish else None)
+            ),
         },
     )
     print("[pipeline] Done.")

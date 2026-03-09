@@ -19,6 +19,13 @@
 - **通知评论抓取**：支持在 `/notification` 页面抓取 `you/mentions` 接口返回
 - **内容数据看板抓取**：支持抓取“笔记基础信息”表（曝光/观看/点赞等）并导出 CSV
 
+## 账号与 Profile 规则
+
+- 不在文档里写死某个 profile 名称，运行时统一通过 `--account NAME` 选择账号
+- 如果不传 `--account`，默认使用 `config/accounts.json` 里的 `default_account`
+- 真正决定登录态的是 `accounts.NAME.profile_dir`
+- 发布前建议先执行 `python scripts/account_manager.py info NAME` 和 `python scripts/cdp_publish.py --account NAME check-login`
+
 ## 安装
 
 ### 环境要求
@@ -71,6 +78,18 @@ python scripts/chrome_launcher.py --kill
 ### 3. 发布内容
 
 ```bash
+# 有窗口模式直接发布
+python scripts/publish_pipeline.py \
+    --account myaccount \
+    --candidate-dir /abs/path/to/workspace/{run_id}/candidates/{candidate_id}
+
+# 或显式传 title/content/images
+python scripts/publish_pipeline.py \
+    --account myaccount \
+    --title-file title.txt \
+    --content-file content.txt \
+    --images card_1.png card_2.png
+
 # 无头模式（推荐，默认自动发布）
 python scripts/publish_pipeline.py --headless \
     --title "文章标题" \
@@ -144,6 +163,11 @@ python scripts/cdp_publish.py set-default-account myaccount
 python scripts/cdp_publish.py switch-account
 ```
 
+说明：
+
+- 若你需要确认“浏览器确实打开并填入内容”，优先用有窗口模式，不要只看 `publish_result.json`
+- 旧的 `publish_result.json` 只能说明历史某次运行写过结果，不能代表本次已经执行
+
 ### 5. 搜索内容、查看笔记详情与评论通知抓取
 
 ```bash
@@ -198,6 +222,7 @@ python scripts/cdp_publish.py content-data --csv-file "/abs/path/content_data.cs
 python scripts/publish_pipeline.py [选项]
 
 选项:
+  --candidate-dir DIR    从 redbook-auto-flow candidate 目录自动读取 publish/ 与 assets/
   --title TEXT           文章标题
   --title-file FILE      从文件读取标题
   --content TEXT         文章正文
