@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, initial-scale=1.0">
+    <title>备忘录</title>
+    <style>{{SHARED_STYLES}}</style>
+</head>
+<body>
+    <div class="notes-screen">
+        <header class="status-bar">
+            <div class="status-time-pill">{{STATUS_TIME}}</div>
+            <div class="status-icons">
+                <span class="status-signal" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span>
+                </span>
+                <span class="status-network">4G</span>
+                <span class="status-battery">
+                    <span class="battery-body"></span>
+                    <span class="battery-cap"></span>
+                </span>
+            </div>
+        </header>
+        <nav class="notes-nav">
+            <div class="notes-nav-left">
+                <span class="nav-back" aria-hidden="true">{{NAV_BACK_ICON}}</span>
+                <span class="nav-folder">{{NAV_LABEL}}</span>
+            </div>
+            <div class="notes-nav-actions">
+                <span class="nav-icon icon-share" aria-hidden="true">{{NAV_SHARE_ICON}}</span>
+                <span class="nav-icon icon-more" aria-hidden="true">{{NAV_MORE_ICON}}</span>
+            </div>
+        </nav>
+        <div class="notes-meta-time">{{MEMO_DATE}}</div>
+        <main class="notes-content">
+            <h1 class="notes-title">{{MEMO_TITLE}}</h1>
+            <div class="notes-body">{{CONTENT}}</div>
+        </main>
+    </div>
+</body>
+</html>

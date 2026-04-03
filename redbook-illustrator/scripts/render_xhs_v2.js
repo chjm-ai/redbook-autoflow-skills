@@ -26,11 +26,15 @@ const yaml = require('js-yaml');
 // 获取脚本所在目录
 const SCRIPT_DIR = path.dirname(__dirname);
 const ASSETS_DIR = path.join(SCRIPT_DIR, 'assets');
+const LUCIDE_ICONS_DIR = path.join(SCRIPT_DIR, 'node_modules', 'lucide-static', 'icons');
 const TEMPLATE_CACHE = new Map();
 
 // 卡片尺寸配置 (3:4 比例)
 const CARD_WIDTH = 1080;
 const CARD_HEIGHT = 1440;
+const MEMO_PAGE_HEIGHT = 1440;
+const MEMO_OVERLAP = 96;
+const MEMO_CUT_ADJUST_RANGE = 120;
 
 // 内容区域安全高度
 const SAFE_HEIGHT = CARD_HEIGHT - 120 - 100 - 80 - 40; // ~1100px
@@ -289,6 +293,17 @@ const STYLES = {
         radius: "16px",
         page_number_color: "rgba(187, 247, 208, 0.58)",
     },
+    memo: {
+        name: "苹果备忘录",
+        mode: "light",
+        accent_color: "#E3A700",
+        card_surface: "#FFFDF7",
+        text_primary: "#3F3F46",
+        text_secondary: "#9CA3AF",
+        text_tertiary: "#52525B",
+        text_muted: "#B0B5BD",
+        border_color: "#ECECEC",
+    },
 };
 
 function readAssetFile(fileName) {
@@ -296,6 +311,21 @@ function readAssetFile(fileName) {
         TEMPLATE_CACHE.set(fileName, fs.readFileSync(path.join(ASSETS_DIR, fileName), 'utf-8'));
     }
     return TEMPLATE_CACHE.get(fileName);
+}
+
+function readLucideIcon(iconName, dataIcon, extraClass = '') {
+    const iconPath = path.join(LUCIDE_ICONS_DIR, `${iconName}.svg`);
+    let svg = fs.readFileSync(iconPath, 'utf-8');
+    svg = svg.replace(/<!--[\s\S]*?-->\s*/g, '').trim();
+    svg = svg.replace(/\sclass="[^"]*"/g, '');
+    const className = ['lucide-icon', extraClass].filter(Boolean).join(' ');
+    svg = svg.replace(
+        /<svg\b/,
+        `<svg data-icon="${dataIcon}" class="${className}"`
+    );
+    svg = svg.replace(/\swidth="24"/, '');
+    svg = svg.replace(/\sheight="24"/, '');
+    return svg;
 }
 
 function escapeHtml(value) {
@@ -354,6 +384,28 @@ function buildThemeCss(styleKey, metadata = {}) {
         .join('\n');
 
     return `${readAssetFile('styles.css')}\n\n:root {\n${cssVars}\n}`;
+}
+
+function buildMemoCss(styleKey, metadata = {}) {
+    const style = STYLES[styleKey] || STYLES.memo;
+    const title = metadata.title || '';
+    const vars = {
+        '--font-family': style.font_family || "'SF Pro Display', 'SF Pro Text', 'PingFang SC', 'Noto Sans SC', sans-serif",
+        '--memo-accent': style.accent_color || '#E3A700',
+        '--memo-page-background': style.card_surface || '#FFFDF7',
+        '--memo-text-primary': style.text_primary || '#3F3F46',
+        '--memo-text-secondary': style.text_secondary || '#9CA3AF',
+        '--memo-text-tertiary': style.text_tertiary || '#52525B',
+        '--memo-text-muted': style.text_muted || '#B0B5BD',
+        '--memo-divider': style.border_color || '#ECECEC',
+        '--memo-title-size': `${getCoverTitleSize(title) > 100 ? 118 : 96}px`,
+    };
+
+    const cssVars = Object.entries(vars)
+        .map(([key, value]) => `    ${key}: ${value};`)
+        .join('\n');
+
+    return `${readAssetFile('memo_styles.css')}\n\n:root {\n${cssVars}\n}`;
 }
 
 /**
@@ -536,6 +588,48 @@ function convertMarkdownToHtml(mdContent, style = STYLES.purple) {
     return html + tagsHtml;
 }
 
+function extractMemoTitle(metadata, body) {
+    if (metadata.title) return String(metadata.title).trim();
+    const match = body.match(/^#\s+(.+)$/m);
+    return match ? match[1].trim() : '备忘录';
+}
+
+function stripLeadingTitle(body, title) {
+    const escapedTitle = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return body.replace(new RegExp(`^#\\s+${escapedTitle}\\s*\\n+`), '').trim();
+}
+
+function formatMemoDate(metadata) {
+    if (metadata.datetime) return String(metadata.datetime);
+    if (metadata.date) return String(metadata.date);
+    return new Intl.DateTimeFormat('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+    }).format(new Date());
+}
+
+function formatMemoStatusTime(metadata) {
+    if (metadata.status_time) return String(metadata.status_time);
+    return new Intl.DateTimeFormat('zh-CN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    }).format(new Date());
+}
+
+function countTextLength(content) {
+    return String(content).replace(/\s+/g, '').length;
+}
+
+function shouldRenderCover(styleKey, metadata = {}) {
+    if (styleKey === 'memo') return false;
+    return Boolean(metadata.emoji || metadata.title);
+}
+
 /**
  * 生成封面 HTML
  */
@@ -561,6 +655,25 @@ function generateCardHtml(content, pageNumber = 1, totalPages = 1, styleKey = 'p
         .replace('{{SHARED_STYLES}}', buildThemeCss(styleKey))
         .replace('{{CONTENT}}', htmlContent)
         .replace('{{PAGE_NUMBER}}', escapeHtml(pageText));
+}
+
+function generateMemoHtml(metadata, body, styleKey = 'memo') {
+    const style = STYLES[styleKey] || STYLES.memo;
+    const title = extractMemoTitle(metadata, body);
+    const contentBody = stripLeadingTitle(body, title);
+    const htmlContent = convertMarkdownToHtml(contentBody, style);
+    const navLabel = metadata.notebook || metadata.folder || 'iCloud全部备忘录';
+
+    return readAssetFile('memo_card.html')
+        .replace('{{SHARED_STYLES}}', buildMemoCss(styleKey, { ...metadata, title }))
+        .replace('{{STATUS_TIME}}', escapeHtml(formatMemoStatusTime(metadata)))
+        .replace('{{NAV_LABEL}}', escapeHtml(navLabel))
+        .replace('{{NAV_BACK_ICON}}', readLucideIcon('chevron-left', 'chevron-left', 'icon-svg'))
+        .replace('{{MEMO_TITLE}}', escapeHtml(title))
+        .replace('{{MEMO_DATE}}', escapeHtml(formatMemoDate(metadata)))
+        .replace('{{NAV_SHARE_ICON}}', readLucideIcon('upload', 'upload', 'icon-svg'))
+        .replace('{{NAV_MORE_ICON}}', readLucideIcon('ellipsis', 'ellipsis', 'icon-svg'))
+        .replace('{{CONTENT}}', htmlContent);
 }
 
 /**
@@ -657,6 +770,161 @@ async function renderHtmlToImage(page, htmlContent, outputPath, htmlOutputPath =
     console.log(`  ✅ 已生成: ${outputPath}`);
 }
 
+function adjustMemoCutY({ targetCutY, boundaryTops, minY, maxY }) {
+    const candidates = boundaryTops.filter(top => top >= minY && top <= maxY);
+    if (candidates.length === 0) return targetCutY;
+
+    return candidates.reduce((closest, current) => {
+        if (Math.abs(current - targetCutY) < Math.abs(closest - targetCutY)) {
+            return current;
+        }
+        return closest;
+    }, candidates[0]);
+}
+
+function computeMemoSlicePlan({ totalHeight, pageHeight = MEMO_PAGE_HEIGHT, overlap = MEMO_OVERLAP, boundaryTops = [] }) {
+    if (totalHeight <= pageHeight) {
+        return [{ index: 1, startY: 0, clipHeight: pageHeight }];
+    }
+
+    const slices = [];
+    let startY = 0;
+    let index = 1;
+
+    while (startY + pageHeight < totalHeight) {
+        const rawCutY = startY + pageHeight;
+        const maxStartY = Math.max(0, totalHeight - pageHeight);
+        const isFinalSlice = rawCutY >= totalHeight || startY >= maxStartY;
+
+        if (isFinalSlice) break;
+
+        const adjustedCutY = adjustMemoCutY({
+            targetCutY: rawCutY,
+            boundaryTops,
+            minY: Math.max(startY + overlap, rawCutY - MEMO_CUT_ADJUST_RANGE),
+            maxY: Math.min(totalHeight - overlap, rawCutY + MEMO_CUT_ADJUST_RANGE),
+        });
+
+        slices.push({
+            index,
+            startY,
+            clipHeight: pageHeight,
+        });
+
+        const nextStartY = Math.min(Math.max(0, adjustedCutY - overlap), maxStartY);
+        if (nextStartY <= startY) break;
+
+        startY = nextStartY;
+        index += 1;
+    }
+
+    slices.push({
+        index,
+        startY: Math.max(0, totalHeight - pageHeight),
+        clipHeight: pageHeight,
+    });
+
+    return slices.filter((slice, sliceIndex, array) => {
+        if (sliceIndex === 0) return true;
+        return slice.startY !== array[sliceIndex - 1].startY;
+    });
+}
+
+async function measureMemoLayout(page, htmlContent) {
+    await page.setContent(htmlContent, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(300);
+
+    return await page.evaluate((memoPageHeight) => {
+        const root = document.querySelector('.memo-page');
+        const body = document.querySelector('.memo-body');
+        const blocks = Array.from(document.querySelectorAll('.memo-body > *, .memo-body li'));
+        const rootTop = root ? root.getBoundingClientRect().top : 0;
+        const boundaryTops = blocks
+            .map(node => {
+                const rect = node.getBoundingClientRect();
+                return Math.round(rect.top - rootTop);
+            })
+            .filter(top => Number.isFinite(top) && top > 0)
+            .sort((a, b) => a - b);
+
+        const totalHeight = Math.max(
+            memoPageHeight,
+            Math.ceil(root ? root.scrollHeight : document.body.scrollHeight)
+        );
+        const bodyHeight = body ? Math.ceil(body.scrollHeight) : totalHeight;
+
+        return { totalHeight, bodyHeight, boundaryTops };
+    }, MEMO_PAGE_HEIGHT);
+}
+
+async function renderMemoCards(mdFile, outputDir, styleKey = 'memo', saveHtml = false, htmlOnly = false) {
+    console.log(`\n🎨 开始渲染: ${mdFile}`);
+    console.log(`🎨 使用样式: ${STYLES[styleKey].name}`);
+
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const { metadata, body } = parseMarkdownFile(mdFile);
+    const memoHtml = generateMemoHtml(metadata, body, styleKey);
+    const browser = await chromium.launch();
+    const page = await browser.newPage({
+        viewport: { width: CARD_WIDTH, height: CARD_HEIGHT },
+        deviceScaleFactor: 1,
+    });
+
+    try {
+        const { totalHeight, boundaryTops } = await measureMemoLayout(page, memoHtml);
+        const slices = computeMemoSlicePlan({
+            totalHeight,
+            pageHeight: MEMO_PAGE_HEIGHT,
+            overlap: MEMO_OVERLAP,
+            boundaryTops,
+        });
+
+        console.log(`  📄 长图高度: ${totalHeight}px`);
+        console.log(`  ✂️ 将裁切 ${slices.length} 张卡片`);
+
+        if (htmlOnly) {
+            fs.writeFileSync(path.join(outputDir, 'memo_long.html'), memoHtml, 'utf-8');
+            for (const slice of slices) {
+                console.log(`  ✅ 预览切片: card_${slice.index}.html @ y=${slice.startY}`);
+            }
+            console.log(`\n✨ HTML 预览已生成，保存到: ${path.join(outputDir, 'memo_long.html')}`);
+            return slices.length;
+        }
+
+        if (saveHtml) {
+            fs.writeFileSync(path.join(outputDir, 'memo_long.html'), memoHtml, 'utf-8');
+        }
+
+        await page.setViewportSize({ width: CARD_WIDTH, height: totalHeight });
+        await page.setContent(memoHtml, { waitUntil: 'networkidle' });
+        await page.waitForTimeout(300);
+
+        for (const slice of slices) {
+            const outputPath = path.join(outputDir, `card_${slice.index}.png`);
+            await page.screenshot({
+                path: outputPath,
+                captureBeyondViewport: true,
+                clip: {
+                    x: 0,
+                    y: slice.startY,
+                    width: CARD_WIDTH,
+                    height: slice.clipHeight,
+                },
+                type: 'png',
+            });
+            console.log(`  ✅ 已生成: ${outputPath}`);
+        }
+
+        console.log(`\n✨ 渲染完成！共生成 ${slices.length} 张卡片，保存到: ${outputDir}`);
+        return slices.length;
+    } finally {
+        await browser.close();
+    }
+}
+
 /**
  * 主渲染函数
  */
@@ -675,6 +943,10 @@ function estimateOnlyProcessCards(cardContents) {
 }
 
 async function renderMarkdownToCards(mdFile, outputDir, styleKey = 'dark', saveHtml = false, htmlOnly = false) {
+    if (styleKey === 'memo') {
+        return renderMemoCards(mdFile, outputDir, styleKey, saveHtml, htmlOnly);
+    }
+
     console.log(`\n🎨 开始渲染: ${mdFile}`);
     console.log(`🎨 使用样式: ${STYLES[styleKey].name}`);
     
@@ -695,7 +967,7 @@ async function renderMarkdownToCards(mdFile, outputDir, styleKey = 'dark', saveH
     const totalCards = processedCards.length;
     console.log(`  📄 将生成 ${totalCards} 张卡片`);
     
-    if (metadata.emoji || metadata.title) {
+    if (shouldRenderCover(styleKey, metadata)) {
         console.log('  📷 生成封面...');
         const coverHtml = generateCoverHtml(metadata, styleKey);
 
@@ -787,10 +1059,11 @@ function parseArgs() {
 
 可用样式:
   purple, xiaohongshu, mint, sunset, ocean, elegant, dark,
-  botanical, retro, brutalist, sakura, midnight, cocoa, terminal
+  botanical, retro, brutalist, sakura, midnight, cocoa, terminal, memo
 
 示例:
   node render_xhs_v2.js note.md
+  node render_xhs_v2.js note.md --style memo --save-html
   node render_xhs_v2.js note.md -o ../redbook-auto-flow/workspace/20260306_120000_ai-tools/assets --style dark
         `);
         process.exit(0);
@@ -848,7 +1121,18 @@ async function main() {
     await renderMarkdownToCards(markdownFile, outputDir, style, saveHtml, htmlOnly);
 }
 
-main().catch(error => {
-    console.error('❌ 渲染失败:', error.message);
-    process.exit(1);
-});
+if (require.main === module) {
+    main().catch(error => {
+        console.error('❌ 渲染失败:', error.message);
+        process.exit(1);
+    });
+}
+
+module.exports = {
+    STYLES,
+    shouldRenderCover,
+    adjustMemoCutY,
+    computeMemoSlicePlan,
+    generateMemoHtml,
+    renderMarkdownToCards,
+};

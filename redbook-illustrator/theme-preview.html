@@ -213,6 +213,10 @@
             font-size: 18px;
         }
 
+        .preview-card.hidden {
+            display: none;
+        }
+
         .frame {
             overflow: auto;
             border-radius: 24px;
@@ -402,6 +406,283 @@
             color: var(--page-number-color);
         }
 
+        .memo-frame {
+            background: #f9f7f2;
+            padding: 0;
+        }
+
+        .memo-scale {
+            margin-bottom: calc(1680px * -0.74);
+        }
+
+        .notes-screen {
+            width: 1080px;
+            min-height: 1680px;
+            padding: 48px 45px 38px;
+            background: #fffdf7;
+            color: #4b5563;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 39px;
+            min-height: 72px;
+        }
+
+        .status-time-pill {
+            min-width: 151px;
+            padding: 14px 27px;
+            border-radius: 999px;
+            background: #32d74b;
+            color: #fff;
+            font-size: 41px;
+            line-height: 1;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 21px;
+            color: #111827;
+            font-size: 42px;
+            font-weight: 700;
+        }
+
+        .status-signal {
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 30px;
+        }
+
+        .status-signal span {
+            display: block;
+            width: 7px;
+            border-radius: 999px;
+            background: #111827;
+        }
+
+        .status-signal span:nth-child(1) { height: 12px; }
+        .status-signal span:nth-child(2) { height: 18px; }
+        .status-signal span:nth-child(3) { height: 24px; }
+        .status-signal span:nth-child(4) { height: 29px; }
+
+        .status-battery {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .battery-body {
+            width: 57px;
+            height: 30px;
+            border: 2px solid #111827;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .battery-body::after {
+            content: "";
+            position: absolute;
+            left: 3px;
+            top: 3px;
+            width: 37px;
+            height: 18px;
+            border-radius: 2px;
+            background: #32d74b;
+        }
+
+        .battery-cap {
+            width: 3px;
+            height: 17px;
+            border-radius: 0 2px 2px 0;
+            background: #111827;
+        }
+
+        .notes-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 36px;
+            color: #e3a700;
+            font-size: 47px;
+            line-height: 1;
+            font-weight: 500;
+        }
+
+        .notes-nav-left,
+        .notes-nav-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .notes-nav-left {
+            gap: 15px;
+        }
+
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 54px;
+            height: 54px;
+            flex: 0 0 auto;
+            color: #e3a700;
+        }
+
+        .nav-folder {
+            font-size: 48px;
+            line-height: 1;
+        }
+
+        .notes-nav-actions {
+            gap: 30px;
+        }
+
+        .nav-icon,
+        .toolbar-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #e3a700;
+        }
+
+        .nav-icon svg,
+        .toolbar-icon svg {
+            width: 1em;
+            height: 1em;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.65;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            overflow: visible;
+        }
+
+        .nav-back svg {
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.85;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            overflow: visible;
+        }
+
+        .nav-icon {
+            font-size: 69px;
+        }
+
+        .icon-more {
+            width: 66px;
+            height: 66px;
+        }
+
+        .notes-meta-time {
+            margin-bottom: 45px;
+            color: #9ca3af;
+            font-size: 39px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .notes-content {
+            padding: 0 18px;
+        }
+
+        .notes-title {
+            margin: 0 0 18px;
+            color: #3f3f46;
+            font-size: 96px;
+            line-height: 1.18;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .notes-body {
+            font-size: 43px;
+            line-height: 1.56;
+            color: #4b5563;
+            font-weight: 400;
+        }
+
+        .notes-body h2 {
+            margin: 40px 0 16px;
+            color: #3f3f46;
+            font-size: 46px;
+            line-height: 1.3;
+        }
+
+        .notes-body p,
+        .notes-body ul,
+        .notes-body blockquote,
+        .notes-body pre {
+            margin: 0 0 30px;
+        }
+
+        .notes-body ul {
+            padding-left: 34px;
+        }
+
+        .notes-body li {
+            margin-bottom: 14px;
+        }
+
+        .notes-body blockquote {
+            padding: 0 0 0 22px;
+            border-left: 3px solid rgba(227, 167, 0, 0.28);
+            background: transparent;
+            color: #656d76;
+        }
+
+        .notes-body pre {
+            padding: 24px 26px;
+            border-radius: 18px;
+            background: #27272a;
+            color: #fafafa;
+            white-space: pre-wrap;
+            font-size: 30px;
+            line-height: 1.5;
+        }
+
+        .memo-empty {
+            display: none;
+            min-height: 320px;
+            place-items: center;
+            padding: 32px;
+            border: 2px dashed rgba(148, 163, 184, 0.35);
+            border-radius: 24px;
+            color: #64748b;
+            background: rgba(255, 255, 255, 0.82);
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        body[data-preview-style="memo"] .classic-preview {
+            display: none;
+        }
+
+        body[data-preview-style="memo"] .memo-preview {
+            display: block;
+        }
+
+        body[data-preview-style="memo"] #coverPreview .frame {
+            display: none;
+        }
+
+        body[data-preview-style="memo"] #coverPreview .memo-empty {
+            display: grid;
+        }
+
+        .memo-preview {
+            display: none;
+        }
+
         @media (max-width: 1200px) {
             .app {
                 grid-template-columns: 1fr;
@@ -441,7 +722,7 @@
             </section>
 
             <section class="preview-grid">
-                <article class="preview-card">
+                <article class="preview-card" id="coverPreview">
                     <h3>封面</h3>
                     <div class="frame">
                         <div class="scale">
@@ -454,11 +735,12 @@
                             </div>
                         </div>
                     </div>
+                    <div class="memo-empty">`memo` 主题不生成单独封面，<br>直接输出长页分页图。</div>
                 </article>
 
                 <article class="preview-card">
                     <h3>正文卡片</h3>
-                    <div class="frame">
+                    <div class="frame classic-preview">
                         <div class="scale">
                             <div class="card-container">
                                 <div class="card-inner">
@@ -481,6 +763,46 @@
                                     </div>
                                 </div>
                                 <div class="page-number">1/7</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="frame memo-frame memo-preview">
+                        <div class="scale memo-scale">
+                            <div class="notes-screen">
+                                <div class="status-bar">
+                                    <div class="status-time-pill">13:29</div>
+                                    <div class="status-icons">
+                                        <span class="status-signal"><span></span><span></span><span></span><span></span></span>
+                                        <span>4G</span>
+                                        <span class="status-battery"><span class="battery-body"></span><span class="battery-cap"></span></span>
+                                    </div>
+                                </div>
+                                <div class="notes-nav">
+                                    <div class="notes-nav-left">
+                                        <span class="nav-back" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></span>
+                                        <span class="nav-folder">iCloud全部备忘录</span>
+                                    </div>
+                                    <div class="notes-nav-actions">
+                                        <span class="nav-icon icon-share" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M5 21h14"/></svg></span>
+                                        <span class="nav-icon icon-more" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/></svg></span>
+                                    </div>
+                                </div>
+                                <div class="notes-meta-time">2026年4月3日 下午1:29</div>
+                                <div class="notes-content">
+                                    <h1 class="notes-title">5个效率神器</h1>
+                                    <div class="notes-body">
+                                        <p>看这张预览时，重点看顶部导航、标题力度和正文节奏，而不是卡片装饰。</p>
+                                        <blockquote>memo 主题现在走“手机备忘录截图”路线，背景纯色，系统栏和底栏都补上了。</blockquote>
+                                        <h2>分页规则</h2>
+                                        <ul>
+                                            <li>先渲染一整张长页</li>
+                                            <li>按 1440px 高度切图</li>
+                                            <li>页与页之间保留 96px 重叠</li>
+                                        </ul>
+                                        <h2>命令示例</h2>
+                                        <pre><code>node scripts/render_xhs_v2.js demos/content.md --style memo --save-html</code></pre>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -742,6 +1064,28 @@
                 font_family: "'SF Mono', 'JetBrains Mono', 'Cascadia Code', 'Source Han Sans CN', monospace",
                 radius: "16px",
                 page_number_color: "rgba(187, 247, 208, 0.58)"
+            },
+            memo: {
+                name: "苹果备忘录",
+                mode: "light",
+                cover_bg: "linear-gradient(180deg, #fffdf7 0%, #f5f5f4 100%)",
+                card_bg: "linear-gradient(135deg, #fffdf7 0%, #f5f5f4 100%)",
+                accent_color: "#E3A700",
+                cover_inner_background: "#fffdf7",
+                title_gradient: "linear-gradient(180deg, #3f3f46 0%, #52525b 100%)",
+                subtitle_color: "#9ca3af",
+                card_surface: "#FFFDF7",
+                text_primary: "#3F3F46",
+                text_secondary: "#9CA3AF",
+                text_tertiary: "#52525B",
+                text_muted: "#B0B5BD",
+                surface_muted: "rgba(255, 248, 210, 0.45)",
+                border_color: "#ECECEC",
+                code_surface: "#f4f4f5",
+                pre_surface: "#27272a",
+                pre_text: "#fafafa",
+                card_shadow: "none",
+                page_number_color: "rgba(176, 181, 189, 0.8)"
             }
         };
 
@@ -759,7 +1103,8 @@
             "sakura",
             "midnight",
             "cocoa",
-            "terminal"
+            "terminal",
+            "memo"
         ];
 
         function coverTitleSize(title) {
@@ -806,9 +1151,12 @@
             Object.entries(vars).forEach(([name, value]) => {
                 document.documentElement.style.setProperty(name, value);
             });
+            document.body.dataset.previewStyle = key === "memo" ? "memo" : "classic";
 
             document.getElementById("activeThemeName").textContent = theme.name;
-            document.getElementById("activeThemeDesc").textContent = `当前主题: ${key}。封面、正文、引用、代码块和标签均使用同一套视觉 token。`;
+            document.getElementById("activeThemeDesc").textContent = key === "memo"
+                ? "当前主题: memo。该主题直接预览备忘录长页正文，并用说明替代封面区域。"
+                : `当前主题: ${key}。封面、正文、引用、代码块和标签均使用同一套视觉 token。`;
             document.getElementById("activeMode").textContent = theme.mode.toUpperCase();
 
             const accentChip = document.getElementById("activeAccent");
